@@ -25,7 +25,7 @@ if login_button:
         with tabs[0]:
             st.subheader("Recharge Card")
             st.write("Redirecting to Google...")
-            st.markdown('<a href="https://www.google.com" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
+            st.markdown('<a href="https://busrfrecharge-aqupzmfkxy3xbvpoq7hybm.streamlit.app/" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
 
         # 2nd Tab: Check Live Status
         with tabs[1]:
