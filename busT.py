@@ -42,7 +42,7 @@ if login_button:
             st.write("Here you can register a new passenger. (Functionality not implemented yet.)")
             st.markdown('<a href="https://regesterpassanger-9iu2puyfxmh9hts5azkwdv.streamlit.app/" target="_blank">Open Register Passenger Page</a>', unsafe_allow_html=True)
     '''
-    else:
-        st.sidebar.error("Invalid username or password. Please try again.")
+    #else:
+        #st.sidebar.error("Invalid username or password. Please try again.")
 else:
     st.write("Please log in from the sidebar to access the system.")
