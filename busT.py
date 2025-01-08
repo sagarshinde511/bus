@@ -3,6 +3,10 @@ import streamlit as st
 # Set the title of the application
 st.set_page_config(page_title="RFID-Based Bus Ticket System", layout="wide")
 
+# Initialize session state for the button
+if "recharge_clicked" not in st.session_state:
+    st.session_state.recharge_clicked = False
+
 # Sidebar for the login page
 st.sidebar.title("RFID-Based Bus Ticket System")
 st.sidebar.write("Please log in to continue.")
@@ -21,8 +25,11 @@ if login_button:
         st.title("RFID-Based Bus Ticket System Dashboard")
         st.write("Choose an action below:")
 
-        # Buttons for different actions
+        # Recharge Card Button
         if st.button("Recharge Card"):
+            st.session_state.recharge_clicked = True
+
+        if st.session_state.recharge_clicked:
             st.subheader("Recharge Card")
             st.write("Redirecting to Google...")
             st.markdown('<a href="https://www.google.com" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
