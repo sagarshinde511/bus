@@ -37,7 +37,7 @@ if login_button:
         with tabs[2]:
             st.subheader("Check Travel History")
             st.write("Redirecting to Recharge Card...")
-            st.markdown('<a href="https://busrfrecharge-aqupzmfkxy3xbvpoq7hybm.streamlit.app/" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
+            st.markdown('<a href="https://bushistory-3ujwysudfgvcpbfdnhexah.streamlit.app/" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
 
         # 4th Tab: Register Passenger
         with tabs[3]:
