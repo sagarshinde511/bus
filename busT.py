@@ -145,7 +145,7 @@ def LiveBusMain():
         # Create a list of RFID numbers from BusPass table
         rfid_numbers = [row[2] for row in rows]  # Assuming RFID is the third column (index 2)
         selected_rfid = st.selectbox("Select RFID No", rfid_numbers)
-        fetch_photo_by_rfid(rfid)
+        fetch_photo_by_rfid(selected_rfid)
         
         if selected_rfid:
             # Fetch and display BusPassangers data for the selected RFID
