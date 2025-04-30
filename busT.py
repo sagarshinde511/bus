@@ -158,7 +158,9 @@ def LiveBusMain():
                 
                 # Show the photo when the button is clicked
             image = Image.open(io.BytesIO(photo_data))
-            st.image(image, caption="Passenger Photo", use_column_width=True)            
+            st.image(image, caption="Passenger Photo", use_container_width=True)
+
+            #st.image(image, caption="Passenger Photo", use_column_width=True)            
                 
             
 # Set the title of the application
