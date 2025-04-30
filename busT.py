@@ -2,10 +2,48 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import OperationalError, IntegrityError
 import io
+from PIL import Image
+
+
 host = "82.180.143.66"
 user = "u263681140_students"
 passwd = "testStudents@123"
 db_name = "u263681140_students"
+def fetch_data_from_buspassangers(rfid):
+    try:
+        # Establishing connection to the database using mysql.connector
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=passwd,
+            database=db_name
+        )
+        cursor = conn.cursor()
+        
+        # Query to fetch data from BusPassangers table based on RFID
+        query = "SELECT * FROM BusPassangers WHERE RFID = %s"
+        cursor.execute(query, (rfid,))
+        rows = cursor.fetchall()
+        
+        # Fetching column names
+        col_names = [desc[0] for desc in cursor.description]
+        
+        # Fetch the photo data from the table (assuming photo is the last column)
+        photo_data = None
+        if rows:
+            photo_data = rows[0][-1]  # Last column is assumed to be the photo
+        
+        # Closing the connection
+        cursor.close()
+        conn.close()
+        
+        return col_names, rows, photo_data
+    except OperationalError as e:
+        st.error(f"Database connection error: {e}")
+        return None, None, None
+    except IntegrityError as e:
+        st.error(f"Database integrity error: {e}")
+        return None, None, None
 
 def fetch_data_from_buspass(rfid=None):
     try:
@@ -43,41 +81,6 @@ def fetch_data_from_buspass(rfid=None):
         return None, None
 
 # Function to fetch data from BusPassangers table based on RFID and retrieve photo
-def fetch_data_from_buspassangers(rfid):
-    try:
-        # Establishing connection to the database using mysql.connector
-        conn = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=passwd,
-            database=db_name
-        )
-        cursor = conn.cursor()
-        
-        # Query to fetch data from BusPassangers table based on RFID
-        query = f"SELECT * FROM BusPassangers WHERE RFID = '{rfid}'"
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        
-        # Fetching column names
-        col_names = [desc[0] for desc in cursor.description]
-        
-        # Fetch the photo data from the table (assuming photo is the last column)
-        photo_data = None
-        if rows:
-            photo_data = rows[0][-1]  # Last column is assumed to be the photo
-        
-        # Closing the connection
-        cursor.close()
-        conn.close()
-        
-        return col_names, rows, photo_data
-    except OperationalError as e:
-        st.error(f"Database connection error: {e}")
-        return None, None, None
-    except IntegrityError as e:
-        st.error(f"Database integrity error: {e}")
-        return None, None, None
 def LiveBusMain():
     # Streamlit app
     st.title("Live Bus Passengers")
@@ -92,7 +95,7 @@ def LiveBusMain():
         st.table(buspass_df)
     
         # Create a list of RFID numbers from BusPass table
-        rfid_numbers = [row[2] for row in rows]  # Assuming RFID is the second column
+        rfid_numbers = [row[2] for row in rows]  # Assuming RFID is the third column (index 2)
         selected_rfid = st.selectbox("Select RFID No", rfid_numbers)
     
         if selected_rfid:
@@ -107,12 +110,12 @@ def LiveBusMain():
                 # Show the photo when the button is clicked
                 if photo_data:
                     if st.button("View Photo"):
-                        st.image(photo_data, caption="Passenger Photo", use_column_width=True)
+                        image = Image.open(io.BytesIO(photo_data))
+                        st.image(image, caption="Passenger Photo", use_column_width=True)
             else:
                 st.warning("No data found for the selected RFID.")
     else:
         st.warning("No data retrieved or there was an error.")
-        
         
 # Set the title of the application
 st.set_page_config(page_title="RFID-Based Bus Ticket System", layout="wide")
