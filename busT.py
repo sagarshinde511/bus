@@ -1,6 +1,7 @@
 import streamlit as st
-
-
+import mysql.connector
+from mysql.connector import OperationalError, IntegrityError
+import io
 
 def fetch_data_from_buspass(rfid=None):
     try:
