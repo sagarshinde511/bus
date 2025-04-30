@@ -156,10 +156,22 @@ def LiveBusMain():
                 buspassangers_df = [dict(zip(col_names, row)) for row in buspassangers_rows]
                 st.table(buspassangers_df)
                 
-                # Show the photo when the button is clicked
-            image = Image.open(io.BytesIO(photo_data))
-            st.image(image, caption="Passenger Photo", use_container_width=True)
-
+            
+                if photo_data:
+                    try:
+                        image = Image.open(io.BytesIO(photo_data))
+                        image.verify()  # Check image integrity
+                        image = Image.open(io.BytesIO(photo_data))  # Reopen after verify
+                        st.image(image, caption="Passenger Photo", use_container_width=True)
+                    except UnidentifiedImageError:
+                        st.error("The image format is not recognized or is corrupted.")
+                    except OSError:
+                        st.error("The image file is incomplete or unreadable.")
+                    except Exception as e:
+                        st.error(f"Unexpected error while loading image: {str(e)}")
+                else:
+                    st.warning("No image data available for this passenger.")
+            
             #st.image(image, caption="Passenger Photo", use_column_width=True)            
                 
             
