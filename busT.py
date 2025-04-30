@@ -2,7 +2,8 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import OperationalError, IntegrityError
 import io
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
+
 
 
 host = "82.180.143.66"
