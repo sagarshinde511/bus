@@ -74,6 +74,58 @@ def fetch_data_from_buspass(rfid=None):
     except IntegrityError as e:
         st.error(f"Database integrity error: {e}")
         return None, None
+def fetch_photo_by_rfid(rfid):
+    """
+    Fetches the photo bytecode from the 'photo' column in BusPassangers table for a given RFID.
+    
+    Parameters:
+        rfid (str): The RFID of the passenger.
+        
+    Returns:
+        bytes: The photo byte data if found, otherwise None.
+    """
+    try:
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=passwd,
+            database=db_name
+        )
+        cursor = conn.cursor()
+        
+        query = "SELECT photo FROM BusPassangers WHERE RFID = %s"
+        cursor.execute(query, (rfid,))
+        result = cursor.fetchone()
+
+        photo_data = result[0] if result else None
+        
+        cursor.close()
+        conn.close()
+
+        return photo_data
+
+    except mysql.connector.Error as e:
+        st.error(f"Database error: {e}")
+        return None
+
+def display_photo_from_bytecode(photo_data, caption="Passenger Photo"):
+    """
+    Converts photo bytecode to an image and displays it in Streamlit
+    when the 'View Photo' button is clicked.
+    
+    Parameters:
+        photo_data (bytes): The bytecode of the image from the database.
+        caption (str): Caption to show under the image.
+    """
+    if photo_data:
+        if st.button("View Photo"):
+            try:
+                image = Image.open(io.BytesIO(photo_data))
+                st.image(image, caption=caption, use_column_width=True)
+            except Exception as e:
+                st.error(f"Error displaying image: {e}")
+    else:
+        st.warning("No photo available to display.")
 
 # Function to fetch data from BusPassangers table based on RFID and retrieve photo
 
@@ -93,7 +145,8 @@ def LiveBusMain():
         # Create a list of RFID numbers from BusPass table
         rfid_numbers = [row[2] for row in rows]  # Assuming RFID is the third column (index 2)
         selected_rfid = st.selectbox("Select RFID No", rfid_numbers)
-    
+        fetch_photo_by_rfid(rfid)
+        
         if selected_rfid:
             # Fetch and display BusPassangers data for the selected RFID
             st.subheader(f"Data for RFID {selected_rfid}")
@@ -104,14 +157,14 @@ def LiveBusMain():
                 st.table(buspassangers_df)
                 
                 # Show the photo when the button is clicked
+                
                 if photo_data:
                     if st.button("View Photo"):
                         image = Image.open(io.BytesIO(photo_data))
-                        st.image(image, caption="Passenger Photo", use_column_width=True)
-            else:
-                st.warning("No data found for the selected RFID.")
-    else:
-        st.warning("No data retrieved or there was an error.")
+                        st.image(image, caption="Passenger Photo", use_column_width=True)            else:
+                                st.warning("No data found for the selected RFID.")
+                    else:
+                        st.warning("No data retrieved or there was an error.")
         
 # Set the title of the application
 st.set_page_config(page_title="RFID-Based Bus Ticket System", layout="wide")
