@@ -2,6 +2,10 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import OperationalError, IntegrityError
 import io
+host = "82.180.143.66"
+user = "u263681140_students"
+passwd = "testStudents@123"
+db_name = "u263681140_students"
 
 def fetch_data_from_buspass(rfid=None):
     try:
