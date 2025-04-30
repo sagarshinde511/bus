@@ -2,6 +2,7 @@ import streamlit as st
 import mysql.connector
 from mysql.connector import OperationalError, IntegrityError
 import io
+import time
 from PIL import Image, UnidentifiedImageError
 host = "82.180.143.66"
 user = "u263681140_students"
