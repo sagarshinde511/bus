@@ -3,10 +3,6 @@ import mysql.connector
 from mysql.connector import OperationalError, IntegrityError
 import io
 from PIL import Image, UnidentifiedImageError
-from streamlit_autorefresh import st_autorefresh
-
-
-
 host = "82.180.143.66"
 user = "u263681140_students"
 passwd = "testStudents@123"
