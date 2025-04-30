@@ -11,7 +11,6 @@ passwd = "testStudents@123"
 db_name = "u263681140_students"
 def fetch_data_from_buspassangers(rfid):
     try:
-        # Establishing connection to the database using mysql.connector
         conn = mysql.connector.connect(
             host=host,
             user=user,
@@ -20,31 +19,27 @@ def fetch_data_from_buspassangers(rfid):
         )
         cursor = conn.cursor()
         
-        # Query to fetch data from BusPassangers table based on RFID
-        query = "SELECT * FROM BusPassangers WHERE RFID = %s"
+        # Fetch only specific columns + photo
+        query = "SELECT Name, Gender, Age, RFID, Balance, Photo FROM BusPassangers WHERE RFID = %s"
         cursor.execute(query, (rfid,))
         rows = cursor.fetchall()
-        
-        # Fetching column names
+
         col_names = [desc[0] for desc in cursor.description]
-        
-        # Fetch the photo data from the table (assuming photo is the last column)
+
         photo_data = None
         if rows:
-            photo_data = rows[0][-1]  # Last column is assumed to be the photo
-        
-        # Closing the connection
+            photo_data = rows[0][-1]  # 'Photo' is expected to be the last selected column
+
         cursor.close()
         conn.close()
-        
-        return col_names, rows, photo_data
+
+        return col_names[:-1], [row[:-1] for row in rows], photo_data  # Exclude 'Photo' from main table
     except OperationalError as e:
         st.error(f"Database connection error: {e}")
         return None, None, None
     except IntegrityError as e:
         st.error(f"Database integrity error: {e}")
         return None, None, None
-
 def fetch_data_from_buspass(rfid=None):
     try:
         # Establishing connection to the database using mysql.connector
@@ -81,6 +76,7 @@ def fetch_data_from_buspass(rfid=None):
         return None, None
 
 # Function to fetch data from BusPassangers table based on RFID and retrieve photo
+
 def LiveBusMain():
     # Streamlit app
     st.title("Live Bus Passengers")
