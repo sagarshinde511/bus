@@ -157,16 +157,10 @@ def LiveBusMain():
                 st.table(buspassangers_df)
                 
                 # Show the photo when the button is clicked
+            image = Image.open(io.BytesIO(photo_data))
+            st.image(image, caption="Passenger Photo", use_column_width=True)            
                 
-                if photo_data:
-                    if st.button("View Photo"):
-                        image = Image.open(io.BytesIO(photo_data))
-                        st.image(image, caption="Passenger Photo", use_column_width=True)            
-                    else:
-                                st.warning("No data found for the selected RFID.")
-                else:
-                    st.warning("No data retrieved or there was an error.")
-        
+            
 # Set the title of the application
 st.set_page_config(page_title="RFID-Based Bus Ticket System", layout="wide")
 
