@@ -168,7 +168,7 @@ def LiveBusMain():
                 
                 # Refresh the app every 3 seconds without logging out
                 time.sleep(3)
-                st.experimental_rerun()
+                st.rerun()
 
     else:
         st.write("Please log in from the sidebar to access the system.")
