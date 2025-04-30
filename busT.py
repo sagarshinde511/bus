@@ -87,7 +87,7 @@ def LiveBusMain():
 
     # Refresh without logout
     time.sleep(3)
-    st.experimental_rerun()
+    st.rerun()
 
 # Sidebar login form
 st.sidebar.title("RFID-Based Bus Ticket System")
