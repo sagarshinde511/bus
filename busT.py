@@ -3,6 +3,7 @@ import mysql.connector
 from mysql.connector import OperationalError, IntegrityError
 import io
 from PIL import Image, UnidentifiedImageError
+from streamlit_autorefresh import st_autorefresh
 
 
 
@@ -173,8 +174,9 @@ def LiveBusMain():
                 else:
                     st.warning("No image data available for this passenger.")
             
-            #st.image(image, caption="Passenger Photo", use_column_width=True)            
-                
+            # Refresh the app after 3 seconds
+            time.sleep(3)
+            st.rerun()
             
 # Set the title of the application
 st.set_page_config(page_title="RFID-Based Bus Ticket System", layout="wide")
