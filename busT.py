@@ -31,7 +31,7 @@ if login_button:
         with tabs[1]:
             st.subheader("Live Bus Status")
             st.write("Redirecting check bus Live passngers...")
-            st.markdown('<a href="https://livebus-itkuyksb6plr5pbzgxhop7.streamlit.app/" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
+            st.markdown('<a href="https://livebus-kdujsvheyidgxdaercw83p.streamlit.app//" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
 
         # 3rd Tab: Check History
         with tabs[2]:
