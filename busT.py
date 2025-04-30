@@ -5,14 +5,17 @@ import io
 from PIL import Image, UnidentifiedImageError
 import time
 
-# MySQL Database Connection Information
+# App config
+st.set_page_config(page_title="RFID-Based Bus Ticket System", layout="wide")
+
+# MySQL Database Config
 host = "82.180.143.66"
 user = "u263681140_students"
 passwd = "testStudents@123"
 db_name = "u263681140_students"
 
-# Track login state in session
-if 'logged_in' not in st.session_state:
+# Maintain login state
+if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 def fetch_data_from_buspassangers(rfid):
@@ -24,30 +27,19 @@ def fetch_data_from_buspassangers(rfid):
             database=db_name
         )
         cursor = conn.cursor()
-        
-        # Fetch only specific columns + photo
         query = "SELECT Name, Gender, Age, RFID, Balance, Photo FROM BusPassangers WHERE RFID = %s"
         cursor.execute(query, (rfid,))
         rows = cursor.fetchall()
-
         col_names = [desc[0] for desc in cursor.description]
-
-        photo_data = None
-        if rows:
-            photo_data = rows[0][-1]  # 'Photo' is expected to be the last selected column
-
+        photo_data = rows[0][-1] if rows else None
         cursor.close()
         conn.close()
-
-        return col_names[:-1], [row[:-1] for row in rows], photo_data  # Exclude 'Photo' from main table
-    except OperationalError as e:
-        st.error(f"Database connection error: {e}")
-        return None, None, None
-    except IntegrityError as e:
-        st.error(f"Database integrity error: {e}")
+        return col_names[:-1], [row[:-1] for row in rows], photo_data
+    except (OperationalError, IntegrityError) as e:
+        st.error(f"Database error: {e}")
         return None, None, None
 
-def fetch_data_from_buspass(rfid=None):
+def fetch_data_from_buspass():
     try:
         conn = mysql.connector.connect(
             host=host,
@@ -56,165 +48,81 @@ def fetch_data_from_buspass(rfid=None):
             database=db_name
         )
         cursor = conn.cursor()
-        
-        # Query to fetch all data from BusPass table or filter by RFID
-        if rfid:
-            query = f"SELECT * FROM BusPass WHERE RFID = '{rfid}'"
-        else:
-            query = "SELECT * FROM BusPass"
-        
+        query = "SELECT * FROM BusPass"
         cursor.execute(query)
         rows = cursor.fetchall()
-        
-        # Fetching column names
         col_names = [desc[0] for desc in cursor.description]
-        
-        # Closing the connection
         cursor.close()
         conn.close()
-        
         return col_names, rows
-    except OperationalError as e:
-        st.error(f"Database connection error: {e}")
-        return None, None
-    except IntegrityError as e:
-        st.error(f"Database integrity error: {e}")
-        return None, None
-
-def fetch_photo_by_rfid(rfid):
-    try:
-        conn = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=passwd,
-            database=db_name
-        )
-        cursor = conn.cursor()
-        
-        query = "SELECT photo FROM BusPassangers WHERE RFID = %s"
-        cursor.execute(query, (rfid,))
-        result = cursor.fetchone()
-
-        photo_data = result[0] if result else None
-        
-        cursor.close()
-        conn.close()
-
-        return photo_data
-
-    except mysql.connector.Error as e:
+    except (OperationalError, IntegrityError) as e:
         st.error(f"Database error: {e}")
-        return None
-
-def display_photo_from_bytecode(photo_data, caption="Passenger Photo"):
-    if photo_data:
-        if st.button("View Photo"):
-            try:
-                image = Image.open(io.BytesIO(photo_data))
-                st.image(image, caption=caption, use_column_width=True)
-            except Exception as e:
-                st.error(f"Error displaying image: {e}")
-    else:
-        st.warning("No photo available to display.")
-
-def validate_login(username, password):
-    if username == "admin" and password == "admin":  # Example credentials
-        st.session_state.logged_in = True
-        return True
-    return False
+        return None, None
 
 def LiveBusMain():
-    if st.session_state.logged_in:
-        st.title("Live Bus Passengers")
-        
-        # Fetch BusPass data to display RFID options
-        col_names, rows = fetch_data_from_buspass()
-        
-        if col_names and rows:
-            # Display the data from BusPass table
-            st.subheader("Current Passengers from Bus")
-            buspass_df = [dict(zip(col_names, row)) for row in rows]
-            st.table(buspass_df)
-        
-            # Create a list of RFID numbers from BusPass table
-            rfid_numbers = [row[2] for row in rows]  # Assuming RFID is the third column (index 2)
-            selected_rfid = st.selectbox("Select RFID No", rfid_numbers)
-            fetch_photo_by_rfid(selected_rfid)
-            
-            if selected_rfid:
-                # Fetch and display BusPassangers data for the selected RFID
-                st.subheader(f"Data for RFID {selected_rfid}")
-                col_names, buspassangers_rows, photo_data = fetch_data_from_buspassangers(selected_rfid)
-        
-                if buspassangers_rows:
-                    buspassangers_df = [dict(zip(col_names, row)) for row in buspassangers_rows]
-                    st.table(buspassangers_df)
-                    
-                
-                    if photo_data:
-                        try:
-                            image = Image.open(io.BytesIO(photo_data))
-                            image.verify()  # Check image integrity
-                            image = Image.open(io.BytesIO(photo_data))  # Reopen after verify
-                            st.image(image, caption="Passenger Photo", use_container_width=True)
-                        except UnidentifiedImageError:
-                            st.error("The image format is not recognized or is corrupted.")
-                        except OSError:
-                            st.error("The image file is incomplete or unreadable.")
-                        except Exception as e:
-                            st.error(f"Unexpected error while loading image: {str(e)}")
-                    else:
-                        st.warning("No image data available for this passenger.")
-                
-                # Refresh the app every 3 seconds without logging out
-                time.sleep(3)
-                st.rerun()
+    st.title("Live Bus Passengers")
+    col_names, rows = fetch_data_from_buspass()
+    if col_names and rows:
+        st.subheader("Current Passengers from Bus")
+        buspass_df = [dict(zip(col_names, row)) for row in rows]
+        st.table(buspass_df)
+        rfid_numbers = [row[2] for row in rows]  # Assuming RFID is at index 2
+        selected_rfid = st.selectbox("Select RFID No", rfid_numbers)
+        if selected_rfid:
+            st.subheader(f"Data for RFID {selected_rfid}")
+            col_names, data_rows, photo_data = fetch_data_from_buspassangers(selected_rfid)
+            if data_rows:
+                df = [dict(zip(col_names, row)) for row in data_rows]
+                st.table(df)
+                if photo_data:
+                    try:
+                        image = Image.open(io.BytesIO(photo_data))
+                        image.verify()
+                        image = Image.open(io.BytesIO(photo_data))
+                        st.image(image, caption="Passenger Photo", use_container_width=True)
+                    except Exception:
+                        st.error("Error loading image.")
+            else:
+                st.warning("No data found.")
 
-    else:
-        st.write("Please log in from the sidebar to access the system.")
+    # Refresh without logout
+    time.sleep(3)
+    st.experimental_rerun()
 
-# Set the title of the application
-st.set_page_config(page_title="RFID-Based Bus Ticket System", layout="wide")
-
-# Sidebar for the login page
+# Sidebar login form
 st.sidebar.title("RFID-Based Bus Ticket System")
-st.sidebar.write("Please log in to continue.")
+if not st.session_state.logged_in:
+    with st.sidebar.form(key="login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        login_button = st.form_submit_button("Login")
+        if login_button:
+            if username == "admin" and password == "admin":
+                st.session_state.logged_in = True
+                st.sidebar.success("Login successful!")
+            else:
+                st.sidebar.error("Invalid credentials.")
+else:
+    st.sidebar.success("You are logged in.")
 
-# Login Form in Sidebar
-with st.sidebar.form(key="login_form"):
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    login_button = st.form_submit_button("Login")
+# Main content
+if st.session_state.logged_in:
+    tabs = st.tabs(["Recharge Card", "Check Live Status", "Check History", "Register Passenger"])
 
-# Main Page
-if login_button:
-    if validate_login(username, password):  # Validate credentials
-        st.sidebar.success(f"Welcome, {username}!")
+    with tabs[0]:
+        st.subheader("Recharge Card")
+        st.markdown('<a href="https://busrfrecharge-aqupzmfkxy3xbvpoq7hybm.streamlit.app/" target="_blank">Click here</a>', unsafe_allow_html=True)
 
-        # Tabs after login
-        tabs = st.tabs(["Recharge Card", "Check Live Status", "Check History", "Register Passenger"])
+    with tabs[1]:
+        st.subheader("Live Bus Status")
+        LiveBusMain()
 
-        # 1st Tab: Recharge Card
-        with tabs[0]:
-            st.subheader("Recharge Card")
-            st.write("Redirecting to Recharge Card...")
-            st.markdown('<a href="https://busrfrecharge-aqupzmfkxy3xbvpoq7hybm.streamlit.app/" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
+    with tabs[2]:
+        st.subheader("Check Travel History")
+        st.markdown('<a href="https://bushistory-3ujwysudfgvcpbfdnhexah.streamlit.app/" target="_blank">Click here</a>', unsafe_allow_html=True)
 
-        # 2nd Tab: Check Live Status
-        with tabs[1]:
-            st.subheader("Live Bus Status")
-            LiveBusMain()
-
-        # 3rd Tab: Check History
-        with tabs[2]:
-            st.subheader("Check Travel History")
-            st.write("Redirecting to Recharge Card...")
-            st.markdown('<a href="https://bushistory-3ujwysudfgvcpbfdnhexah.streamlit.app/" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
-
-        # 4th Tab: Register Passenger
-        with tabs[3]:
-            st.subheader("Regester Card")
-            st.write("Redirecting to Reguster Passnger Card...")
-            st.markdown('<a href="https://regesterpassanger-9iu2puyfxmh9hts5azkwdv.streamlit.app/" target="_blank">Click here if not redirected</a>', unsafe_allow_html=True)
-    else:
-        st.sidebar.error("Invalid credentials. Please try again.")
+    with tabs[3]:
+        st.subheader("Register Passenger")
+        st.markdown('<a href="https://regesterpassanger-9iu2puyfxmh9hts5azkwdv.streamlit.app/" target="_blank">Click here</a>', unsafe_allow_html=True)
+else:
+    st.write("Please log in from the sidebar to access the system.")
